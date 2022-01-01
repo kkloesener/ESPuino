@@ -93,7 +93,7 @@
 
     // (optional) Neopixel
     #if defined(NEOPIXEL_ENABLE)
-        #define LED_PIN                     23          // GPIO for Neopixel-signaling
+        #define LED_PIN                     22          // GPIO for Neopixel-signaling
     #endif
 
     // (optinal) Headphone-detection
