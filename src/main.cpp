@@ -1,8 +1,9 @@
 // !!! MAKE SURE TO EDIT settings.h !!!
 #include <Arduino.h>
-#include <Wire.h>
+//#include <Wire.h>
 #include "settings.h" // Contains all user-relevant settings (general)
 
+#include "i2c.h"
 #include "AudioPlayer.h"
 #include "Battery.h"
 #include "Bluetooth.h"
@@ -24,6 +25,7 @@
 #include "Web.h"
 #include "Wlan.h"
 #include "revision.h"
+#include "ButtonMPR121.h"
 
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
     bool recoverLastRfid = true;
@@ -33,17 +35,6 @@
 #endif
 
 ////////////
-
-#if (HAL == 2)
-    #include "AC101.h"
-    static TwoWire i2cBusOne = TwoWire(0);
-    static AC101 ac(&i2cBusOne);
-#endif
-
-// I2C
-#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-    TwoWire i2cBusTwo = TwoWire(1);
-#endif
 
 #ifdef PLAY_LAST_RFID_AFTER_REBOOT
     // If a problem occurs, remembering last rfid can lead into a boot loop that's hard to escape of.
@@ -157,39 +148,9 @@ void setup() {
 
     Led_Init();
 
-    #if (HAL == 2)
-        i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
-
-        while (not ac.begin()) {
-            Serial.println(F("AC101 Failed!"));
-            delay(1000);
-        }
-        Serial.println(F("AC101 via I2C - OK!"));
-
-        pinMode(22, OUTPUT);
-        digitalWrite(22, HIGH);
-
-        pinMode(GPIO_PA_EN, OUTPUT);
-        digitalWrite(GPIO_PA_EN, HIGH);
-        Serial.println(F("Built-in amplifier enabled\n"));
-    #endif
+    i2c_Init();
 
     SdCard_Init();
-
-    // Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined(PORT_TOUCHMPR121_ENABLE)
-        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
-        delay(50);
-        loggerNl(serialDebug, (char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
-    #endif
-
-    // Init RC522 Card-Reader
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
-        mfrc522.PCD_Init();
-        mfrc522.PCD_SetAntennaGain(rfidGain);
-        delay(50);
-        Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
-    #endif
 
     // welcome message
     Serial.println(F(""));
@@ -207,29 +168,6 @@ void setup() {
 
     // print wake-up reason
     printWakeUpReason();
-
-    // Init MPR121 Touch-Buttons
-    #ifdef PORT_TOUCHMPR121_ENABLE
-        pinMode(MPR121_IRQ_PIN, INPUT_PULLUP);
-        if (!touchSensor.begin(MPR121_I2C_ADR, &i2cBusTwo, 24, 12)) {
-            Serial.println("MPR121 not found, check wiring?");
-        }
-        Serial.println("MPR121 initialized");
-        // Register Callbacks for ButtonPressed
-        button1.onPress(onButtonPressed);
-        button2.onPress(onButtonPressed);
-        button3.onPress(onButtonPressed);
-        button4.onPress(onButtonPressed);
-        button5.onPress(onButtonPressed);
-        button6.onPress(onButtonPressed);
-        // Register Callbacks for ButtonReleased
-        button1.onPress(onButtonReleased);
-        button2.onPress(onButtonReleased);
-        button3.onPress(onButtonReleased);
-        button4.onPress(onButtonReleased);
-        button5.onPress(onButtonReleased);
-        button6.onPress(onButtonReleased);
-    #endif
 
     // show SD card type
     sdcard_type_t cardType = SdCard_GetType();
@@ -255,6 +193,8 @@ void setup() {
         Button_Init();
         Rfid_Init();
     #endif
+
+    ButtonMPR121_Init();
     RotaryEncoder_Init();
     Wlan_Init();
     Bluetooth_Init();

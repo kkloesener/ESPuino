@@ -12,6 +12,7 @@
 #include "freertos/task.h"
 #include "esp_system.h"
 #include "Audio.h"
+#include "ButtonMPR121.h"
 
 constexpr const char prefsRfidNamespace[] PROGMEM = "rfidTags";     // Namespace used to save IDs of rfid-tags
 constexpr const char prefsSettingsNamespace[] PROGMEM = "settings"; // Namespace used for generic settings
@@ -237,6 +238,9 @@ void System_DeepSleepManager(void) {
         Rfid_Exit();
         #ifdef PORT_EXPANDER_ENABLE
             Port_Exit();
+        #endif
+        #ifdef PORT_TOUCHMPR121_ENABLE
+            ButtonMPR121_Exit();
         #endif
         Serial.println(F("deep-sleep, good night......."));
         esp_deep_sleep_start();

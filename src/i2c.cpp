@@ -3,27 +3,33 @@
 #include "i2c.h"
 
 #if (HAL == 2)
-    TwoWire i2cBusOne = TwoWire(0);
-    AC101 ac(&i2cBusOne);
+    extern TwoWire i2cBusOne = TwoWire(0);
+    extern AC101 ac(&i2cBusOne);
 #endif
 
 #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined (PORT_TOUCHMPR121_ENABLE)
-    TwoWire i2cBusTwo = TwoWire(1);
+    extern TwoWire i2cBusTwo = TwoWire(1);
 #endif
 
-void i2c_init() {
+void i2c_Init() {
 
     #if (HAL == 2)
         i2c_clear_lines(IIC_DATA, IIC_CLK);
         i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
-//        loggerNl(serialDebug, (char *) FPSTR(i2cB1Active), LOGLEVEL_DEBUG);
+
+        ac.begin();
+        pinMode(22, OUTPUT);
+        digitalWrite(22, HIGH);
+
+        pinMode(GPIO_PA_EN, OUTPUT);
+        digitalWrite(GPIO_PA_EN, HIGH);
+
     #endif
 
     #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined (PORT_TOUCHMPR121_ENABLE)
         i2c_clear_lines(ext_IIC_DATA, ext_IIC_CLK);
         i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
         delay(50);
-//        loggerNl(serialDebug, (char *) FPSTR(i2cB2Active), LOGLEVEL_DEBUG);
     #endif
 }
 
