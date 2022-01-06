@@ -8,7 +8,7 @@
 
 // Init MPR121 Touch-Buttons
 #ifdef PORT_TOUCHMPR121_ENABLE
-extern MPR121_type touchsensor = MPR121_type();
+MPR121_type touchsensor = MPR121_type();
 const int numElectrodes = 3;
 t_button touchbuttons[numElectrodes -1];    // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 #endif
@@ -28,7 +28,7 @@ void ButtonMPR121_Init() {
         }
     } else {
     if (!touchsensor.begin(MPR121_I2C_ADR, 40, 20, MPR121_IRQ_PIN, &i2cBusTwo)) {
-        switch (MPR121.getError()) {
+        switch (touchsensor.getError()) {
             case NO_ERROR:
                 Serial.println("no error");
                 break;
@@ -54,9 +54,9 @@ void ButtonMPR121_Init() {
 //                 Log_Println((char *) FPSTR(mpr121_error), LOGLEVEL_ERROR);
         while (1);
 //                 Log_Println((char *) FPSTR(mpr121_initiated), LOGLEVEL_INFO);
-        if (touchsensor.isInited()) {Serial.println("MPR121 initialized")};
+        if (touchsensor.isInited()) {Serial.println("MPR121 initialized");}
 //                 Log_Println((char *) FPSTR(mpr121_running), LOGLEVEL_INFO);
-        if (touchsensor.isRunning()) {Serial.println("MPR121 running")};
+        if (touchsensor.isRunning()) {Serial.println("MPR121 running");}
     }}
 
     touchsensor.autoSetElectrodes();  // autoset all electrode settings
