@@ -70,7 +70,7 @@
     #endif
 
     #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
-        constexpr uint8_t rfidGain = 0x07 << 4;      // Sensitivity of RC522. For possible values see reference: https://forum.espuino.de/uploads/default/original/1X/9de5f8d35cbc123c1378cad1beceb3f51035cec0.png
+        constexpr uint8_t rfidGain = 0x05 << 4;      // Sensitivity of RC522. For possible values see reference: https://forum.espuino.de/uploads/default/original/1X/9de5f8d35cbc123c1378cad1beceb3f51035cec0.png
     #endif
 
 
@@ -155,7 +155,7 @@
     constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of previous/next-button
 
     // RFID-RC522
-    #define RFID_SCAN_INTERVAL 100                      // Interval-time in ms (how often is RFID read?)
+    #define RFID_SCAN_INTERVAL 200                      // Interval-time in ms (how often is RFID read?)
 
     // Automatic restart
     #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
