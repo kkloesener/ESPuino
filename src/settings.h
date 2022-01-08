@@ -155,7 +155,7 @@
     constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of previous/next-button
 
     // RFID-RC522
-    #define RFID_SCAN_INTERVAL 200                      // Interval-time in ms (how often is RFID read?)
+    #define RFID_SCAN_INTERVAL 400                      // Interval-time in ms (how often is RFID read?)
 
     // Automatic restart
     #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
@@ -178,8 +178,8 @@
     // (optinal) Neopixel
     #ifdef NEOPIXEL_ENABLE
         #define NUM_LEDS                    24          // number of LEDs
-        #define CHIPSET                     WS2812B     // type of Neopixel
-        #define COLOR_ORDER                 GRB
+        #define CHIPSET                     WS2812      // type of Neopixel
+        #define COLOR_ORDER                 GRB         //
     #endif
 
     // (optional) Default-voltages for battery-monitoring via Neopixel

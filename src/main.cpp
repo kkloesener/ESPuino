@@ -119,6 +119,9 @@ void printWakeUpReason() {
 
 void setup() {
     Log_Init();
+
+    Led_Init();
+
     Queues_Init();
 
     // make sure all wakeups can be enabled *before* initializing RFID, which can enter sleep immediately
@@ -145,8 +148,6 @@ void setup() {
     gPrefsRfid.putString("244105171042", "#0#0#111#0"); // modification-card (repeat track)
     gPrefsRfid.putString("228064156042", "#0#0#110#0"); // modification-card (repeat playlist)
     gPrefsRfid.putString("212130160042", "#/mp3/Hoerspiele/Yakari/Sammlung2#0#3#0");*/
-
-    Led_Init();
 
     i2c_Init();
 

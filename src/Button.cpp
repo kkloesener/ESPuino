@@ -58,7 +58,11 @@ static void Button_DoButtonActions(void);
 
 void Button_Init() {
     #if (WAKEUP_BUTTON <= 39)
+    #ifdef PORT_TOUCHMPR121_ENABLE
         esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_BUTTON, 0);
+    #else
+        esp_sleep_enable_ext0_wakeup((gpio_num_t)WAKEUP_BUTTON, 1);
+    #endif
         #ifdef USEROTARY_ENABLE
         esp_sleep_enable_ext0_wakeup((gpio_num_t)ROTARYENCODER_CLK, 0);
         esp_sleep_enable_ext0_wakeup((gpio_num_t)ROTARYENCODER_DT, 0);

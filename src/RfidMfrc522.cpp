@@ -37,18 +37,19 @@
         #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(RFID_READER_TYPE_MFRC522_SPI)
             mfrc522.PCD_Init();
             mfrc522.PCD_SetAntennaGain(rfidGain);
-            delay(50);
-            Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
+            delay(10);
 
             xTaskCreatePinnedToCore(
                 Rfid_Task,              /* Function to implement the task */
                 "rfid",                 /* Name of the task */
                 1536,                   /* Stack size in words */
                 NULL,                   /* Task input parameter */
-                2 | portPRIVILEGE_BIT,  /* Priority of the task */
+                1 | portPRIVILEGE_BIT,  /* Priority of the task */
                 NULL,                   /* Task handle. */
-                1                       /* Core where the task should run */
+                1          /* Core where the task should run */
             );
+
+            Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
         #endif
     }
 
@@ -64,12 +65,6 @@
 		bool cardApplied = false;
 
         for (;;) {
-			if (RFID_SCAN_INTERVAL/2 >= 20) {
-                vTaskDelay(portTICK_RATE_MS * (RFID_SCAN_INTERVAL/2));
-            } else {
-               vTaskDelay(portTICK_RATE_MS * 20);
-            }
-
 			if ((millis() - Rfid_LastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
 
 				cardAppliedCurrentRun = false;
@@ -97,7 +92,7 @@
 						Serial.print("Card Control is: ");
 						Serial.println(control);
 */
-					if (control == 59) {
+					if (control > 30) {
 						//card is present
 //						Serial.println("Card present in run");
 						cardAppliedCurrentRun = true;
@@ -112,10 +107,7 @@
 						break;
 					}
 				}
-/*
-				mfrc522.PICC_HaltA();
-				mfrc522.PCD_StopCrypto1();
-*/
+
 				if (cardAppliedCurrentRun && !cardApplied) {				// Card was just presented
 
 					memcpy(cardId, mfrc522.uid.uidByte, cardIdSize);
@@ -144,19 +136,33 @@
 					// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
 					if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH) {
 						AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);       // ... play/pause instead (but not for BT)
+					} else if (gPlayProperties.playMode == NO_PLAYLIST) {
+						xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
 					}
 				}
 
 				} else {
 					if (cardRemovedCurrentRun) {	// Send Pause when no Card is removed
+						Log_Println((char *) FPSTR(rfidTagRemoved), LOGLEVEL_NOTICE);
+
 			#ifdef PAUSE_WHEN_RFID_REMOVED
 						AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
 			#endif
-						Log_Println((char *) FPSTR(rfidTagRemoved), LOGLEVEL_NOTICE);
+
+						mfrc522.PICC_HaltA();
+						mfrc522.PCD_StopCrypto1();
+
 						cardApplied = false;
 					 }
 				}
 			}
+
+			if (RFID_SCAN_INTERVAL/2 >= 50) {
+                vTaskDelay((RFID_SCAN_INTERVAL/2) / portTICK_RATE_MS);
+            } else {
+               vTaskDelay(50 / portTICK_RATE_MS);
+            }
+
 		}
 	}
 
