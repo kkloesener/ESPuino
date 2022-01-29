@@ -2,7 +2,9 @@
 #define __ESPUINO_SETTINGS_H__
     #include "Arduino.h"
     #include "values.h"
-
+#if __has_include("settings-override.h")
+#include "settings-override.h"
+#else
     //######################### INFOS ####################################
     // This is the general configfile for ESPuino-configuration.
 
@@ -52,7 +54,7 @@
 
 
     //################## select SD card mode #############################
-    #define SD_MMC_1BIT_MODE              // run SD card in SD-MMC 1Bit mode
+    #define SD_MMC_1BIT_MODE              // run SD card in SD-MMC 1Bit mode (using GPIOs 15 + 14 + 2 is mandatory!)
     //#define SINGLE_SPI_ENABLE             // If only one SPI-instance should be used instead of two (not yet working!)
 
 
@@ -121,7 +123,7 @@
     #define BUTTON_4_LONG     CMD_NOTHING
     #define BUTTON_5_LONG     CMD_NOTHING
 
-    #define BUTTON_MULTI_01   CMD_TOGGLE_WIFI_STATUS
+    #define BUTTON_MULTI_01   CMD_NOTHING   //CMD_TOGGLE_WIFI_STATUS (disabled now to prevent children from unwanted WiFi-disable)
     #define BUTTON_MULTI_02   CMD_ENABLE_FTP_SERVER
     #define BUTTON_MULTI_03   CMD_NOTHING
     #define BUTTON_MULTI_04   CMD_NOTHING
@@ -248,5 +250,5 @@
     #endif
 
     //#define ENABLE_ESPUINO_DEBUG                            // Needs modification of platformio.ini (https://forum.espuino.de/t/rfid-mit-oder-ohne-task/353/21); better don't enable unless you know what you're doing :-)
-
+#endif //settings_override
 #endif
