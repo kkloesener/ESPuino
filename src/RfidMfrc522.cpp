@@ -142,10 +142,12 @@
 				}
 
 				} else {
-					if (cardRemovedCurrentRun) {	// Send Pause when no Card is removed
+					if (cardRemovedCurrentRun) {
 						Log_Println((char *) FPSTR(rfidTagRemoved), LOGLEVEL_NOTICE);
 
 			#ifdef PAUSE_WHEN_RFID_REMOVED
+						// Send Pause when Card is removed
+						// Serial.print("Send PAUSEPLAY");
 						AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
 			#endif
 
