@@ -24,11 +24,11 @@
         //  MISO    2
     #else
         // uSD-card-reader (via SPI)
-        #define SPISD_CS                        13          // GPIO for chip select (SD)
+        #define SPISD_CS                    13          // GPIO for chip select (SD)
         #ifndef SINGLE_SPI_ENABLE
-            #define SPISD_MOSI                  15          // GPIO for master out slave in (SD) => not necessary for single-SPI
-            #define SPISD_MISO                   2          // GPIO for master in slave ou (SD) => not necessary for single-SPI
-            #define SPISD_SCK                   14          // GPIO for clock-signal (SD) => not necessary for single-SPI
+            #define SPISD_MOSI              15          // GPIO for master out slave in (SD) => not necessary for single-SPI
+            #define SPISD_MISO               2          // GPIO for master in slave ou (SD) => not necessary for single-SPI
+            #define SPISD_SCK               14          // GPIO for clock-signal (SD) => not necessary for single-SPI
         #endif
     #endif
 
@@ -75,7 +75,6 @@
         //#define REVERSE_ROTARY                        // To reverse encoder's direction; switching CLK / DT in hardware does the same
         #define ROTARYENCODER_CLK           5           // rotary encoder's CLK
         #define ROTARYENCODER_DT            18          // Info: Lolin D32 / Lolin D32 pro 35 are using 35 for battery-voltage-monitoring!
-        #define ROTARYENCODER_BUTTON         4          // (set to 99 to disable; 0->39 for GPIO; 100->115 for port-expander)
     #endif
 
     // Control-buttons (set to 99 to DISABLE; 0->39 for GPIO; 100->115 for port-expander; 200->211 for mpr121-touchports )
@@ -100,7 +99,10 @@
     #define WAKEUP_BUTTON                       MFRC522_IRQ_PIN // Defines the button that is used to wake up ESPuino from deepsleep.
     #endif
     // Power-control
-    #define POWER                               GPIO_PA_EN          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
+    #define POWER                           GPIO_PA_EN          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
+    #ifdef POWER
+        //#define INVERT_POWER                          // If enabled, use inverted logic for POWER circuit, that means peripherals are turned off by writing HIGH
+    #endif
 
     // (optional) Neopixel
     #if defined(NEOPIXEL_ENABLE)

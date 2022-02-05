@@ -13,6 +13,7 @@
 #include "esp_system.h"
 #include "Audio.h"
 #include "ButtonMPR121.h"
+#include "Power.h"
 
 constexpr const char prefsRfidNamespace[] PROGMEM = "rfidTags";     // Namespace used to save IDs of rfid-tags
 constexpr const char prefsSettingsNamespace[] PROGMEM = "settings"; // Namespace used for generic settings
@@ -36,11 +37,6 @@ void System_DeepSleepManager(void);
 
 void System_Init(void) {
     srand(esp_random());
-    #if (POWER >= 0 && POWER <= 39)
-        pinMode(POWER, OUTPUT);
-        //delay(50);     // Makes booting Wemos Lolin D32 pro a bit faster if headphone-PCB is connected (for whatever reason)
-        digitalWrite(POWER, HIGH);
-    #endif
 
     gPrefsRfid.begin((char *) FPSTR(prefsRfidNamespace));
     gPrefsSettings.begin((char *) FPSTR(prefsSettingsNamespace));
@@ -236,7 +232,7 @@ void System_DeepSleepManager(void) {
 
         Serial.flush();
         // switch off power
-        digitalWrite(POWER, LOW);
+        Power_PeripheralOff();
         delay(200);
         Rfid_Exit();
         #ifdef PORT_EXPANDER_ENABLE
