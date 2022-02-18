@@ -16,4 +16,5 @@ extern AC101 ac;
 
 void i2c_Init(void);
 void i2c_clear_lines(int PIN_SDA, int PIN_SCL);
+void i2c_scanExtBus(void);
 #endif

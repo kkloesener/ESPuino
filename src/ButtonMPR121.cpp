@@ -27,8 +27,10 @@ void ButtonMPR121_Init() {
             Serial.println("MPR Running - nothing more to do");
         }
     } else {
-    if (!touchsensor.begin(MPR121_I2C_ADR, 40, 20, MPR121_IRQ_PIN, &i2cBusTwo)) {
-        switch (touchsensor.getError()) {
+    touchsensor.clearError();
+    if (!touchsensor.begin(MPR121_I2C_ADR, 12, 6, MPR121_IRQ_PIN, &i2cBusTwo)) {
+            Serial.print("MPR121 ERROR: ");
+/*        switch (touchsensor.getError()) {
             case NO_ERROR:
                 Serial.println("no error");
                 break;
@@ -57,7 +59,8 @@ void ButtonMPR121_Init() {
         if (touchsensor.isInited()) {Serial.println("MPR121 initialized");}
 //                 Log_Println((char *) FPSTR(mpr121_running), LOGLEVEL_INFO);
         if (touchsensor.isRunning()) {Serial.println("MPR121 running");}
-    }}
+ */   }
+    }
 
     touchsensor.autoSetElectrodes();  // autoset all electrode settings
     touchsensor.updateTouchData();

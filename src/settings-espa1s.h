@@ -81,8 +81,9 @@
     #define NEXT_BUTTON                        202          // Button 0: GPIO to detect next
     #define PREVIOUS_BUTTON                    200          // Button 1: GPIO to detect previous
     #define PAUSEPLAY_BUTTON                   201          // Button 2: GPIO to detect pause/play
-    #define BUTTON_4                           203          // Button 4: unnamed optional button
-    #define BUTTON_5                           204          // Button 5: unnamed optional button
+    #define ROTARYENCODER_BUTTON               203         // rotary encoder's button
+    #define BUTTON_4                           204          // Button 4: unnamed optional button
+    #define BUTTON_5                           205          // Button 5: unnamed optional button
 
     // Channels of port-expander can be read cyclic or interrupt-driven. It's strongly recommended to use the interrupt-way!
     // Infos: https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306
@@ -93,11 +94,9 @@
     // Wake-up button => this also is the interrupt-pin if port-expander is enabled!
     // Please note: only RTC-GPIOs (0, 4, 12, 13, 14, 15, 25, 26, 27, 32, 33, 34, 35, 36, 39, 99) can be used! Set to 99 to DISABLE.
     // Please note #2: this button can be used as interrupt-pin for port-expander. If so, all pins connected to port-expander can wake up ESPuino.
-    #ifdef PORT_TOUCHMPR121_ENABLE
-    #define WAKEUP_BUTTON                       MPR121_IRQ_PIN // Defines the button that is used to wake up ESPuino from deepsleep.
-    #else
+//    #define WAKEUP_BUTTON                       MPR121_IRQ_PIN // Defines the button that is used to wake up ESPuino from deepsleep.
     #define WAKEUP_BUTTON                       MFRC522_IRQ_PIN // Defines the button that is used to wake up ESPuino from deepsleep.
-    #endif
+
     // Power-control
     #define POWER                           GPIO_PA_EN          // GPIO used to drive transistor-circuit, that switches off peripheral devices while ESP32-deepsleep
     #ifdef POWER

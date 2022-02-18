@@ -15,7 +15,7 @@ void i2c_Init() {
 
     #if (HAL == 2)
         i2c_clear_lines(IIC_DATA, IIC_CLK);
-        i2cBusOne.begin(IIC_DATA, IIC_CLK, 40000);
+        i2cBusOne.begin(IIC_DATA, IIC_CLK, 100000L);
 
         ac.begin();
         pinMode(22, OUTPUT);
@@ -28,8 +28,7 @@ void i2c_Init() {
 
     #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined (PORT_TOUCHMPR121_ENABLE)
         i2c_clear_lines(ext_IIC_DATA, ext_IIC_CLK);
-        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 40000);
-        delay(50);
+        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 100000L);
     #endif
 }
 
@@ -59,5 +58,37 @@ void i2c_clear_lines(int PIN_SDA, int PIN_SCL) {
         if( stuck_transaction ){
         } else {
         }
+    }   
+}
+
+void i2c_scanExtBus() {
+  byte error, address;
+  int nDevices;
+  Serial.println("Scanning...");
+  nDevices = 0;
+  for(address = 1; address < 127; address++ ) {
+    i2cBusTwo.beginTransmission(address);
+    error = i2cBusTwo.endTransmission();
+    if (error == 0) {
+      Serial.print("external I2C-Bus: device found at address 0x");
+      if (address<16) {
+        Serial.print("0");
+      }
+      Serial.println(address,HEX);
+      nDevices++;
     }
+    else if (error==4) {
+      Serial.print("Unknow error at address 0x");
+      if (address<16) {
+        Serial.print("0");
+      }
+      Serial.println(address,HEX);
+    }    
+  }
+  if (nDevices == 0) {
+    Serial.println("No I2C devices found\n");
+  }
+  else {
+    Serial.println("done\n");
+  }
 }

@@ -237,6 +237,8 @@ void loop() {
     Button_Cyclic();
     System_Cyclic();
     Rfid_PreferenceLookupHandler();
+    // i2c_scanExtBus(); // just testing
+
 
     #ifdef PLAY_LAST_RFID_AFTER_REBOOT
         recoverBootCountFromNvs();

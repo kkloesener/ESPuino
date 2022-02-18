@@ -46,7 +46,7 @@
                 NULL,                   /* Task input parameter */
                 1 | portPRIVILEGE_BIT,  /* Priority of the task */
                 NULL,                   /* Task handle. */
-                1          /* Core where the task should run */
+                0          /* Core where the task should run */
             );
 
             Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
