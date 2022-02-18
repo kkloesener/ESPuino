@@ -29,7 +29,7 @@
 
     //########################## MODULES #################################
     //#define PORT_EXPANDER_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555 (https://forum.espuino.de/t/einsatz-des-port-expanders-pca9555/306)
-    //#define PORT_TOUCHMPR121_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555
+    #define PORT_TOUCHMPR121_ENABLE          // When enabled, buttons can be connected via port-expander PCA9555
     //#define I2S_COMM_FMT_LSB_ENABLE       // Enables FMT instead of MSB for I2S-communication-format. Used e.g. by PT2811. Don't enable for MAX98357a, AC101 or PCM5102A)
     //#define MDNS_ENABLE                     // When enabled, you don't have to handle with ESPuino's IP-address. If hostname is set to "ESPuino", you can reach it via ESPuino.local
     //#define MQTT_ENABLE                     // Make sure to configure mqtt-server and (optionally) username+pwd
@@ -155,7 +155,7 @@
     constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of previous/next-button
 
     // RFID-RC522
-    #define RFID_SCAN_INTERVAL 400                      // Interval-time in ms (how often is RFID read?)
+    #define RFID_SCAN_INTERVAL 600                      // Interval-time in ms (how often is RFID read?)
 
     // Automatic restart
     #ifdef SHUTDOWN_IF_SD_BOOT_FAILS

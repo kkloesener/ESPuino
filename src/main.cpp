@@ -189,10 +189,11 @@ void setup() {
     Ftp_Init();
     Mqtt_Init();
     #ifndef PN5180_ENABLE_LPCD
-        Rfid_Init();
+        // only execute threadsafe when i2c is used
+        i2c_tsafe_execute(Rfid_Init);
     #endif
 
-    ButtonMPR121_Init();
+    i2c_tsafe_execute(ButtonMPR121_Init);
     RotaryEncoder_Init();
     Wlan_Init();
     Bluetooth_Init();
@@ -235,9 +236,10 @@ void loop() {
     Battery_Cyclic();
     //Port_Cyclic(); // called by button (controlled via hw-timer)
     Button_Cyclic();
+    ButtonMPR121_Cyclic();
     System_Cyclic();
     Rfid_PreferenceLookupHandler();
-    // i2c_scanExtBus(); // just testing
+    // i2c_tsafe_execute(i2c_scanExtBus); // just testing
 
 
     #ifdef PLAY_LAST_RFID_AFTER_REBOOT

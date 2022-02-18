@@ -11,6 +11,7 @@
 MPR121_type touchsensor = MPR121_type();
 const int numElectrodes = 3;
 t_button touchbuttons[numElectrodes -1];    // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
+unsigned long MPR121_LastCheckTimestamp;
 #endif
 
 void ButtonMPR121_Init() {
@@ -28,9 +29,9 @@ void ButtonMPR121_Init() {
         }
     } else {
     touchsensor.clearError();
-    if (!touchsensor.begin(MPR121_I2C_ADR, 12, 6, MPR121_IRQ_PIN, &i2cBusTwo)) {
+    if (!touchsensor.begin(MPR121_I2C_ADR, 40, 8, MPR121_IRQ_PIN, &i2cBusTwo)) {
             Serial.print("MPR121 ERROR: ");
-/*        switch (touchsensor.getError()) {
+        switch (touchsensor.getError()) {
             case NO_ERROR:
                 Serial.println("no error");
                 break;
@@ -59,7 +60,7 @@ void ButtonMPR121_Init() {
         if (touchsensor.isInited()) {Serial.println("MPR121 initialized");}
 //                 Log_Println((char *) FPSTR(mpr121_running), LOGLEVEL_INFO);
         if (touchsensor.isRunning()) {Serial.println("MPR121 running");}
- */   }
+    }
     }
 
     touchsensor.autoSetElectrodes();  // autoset all electrode settings
@@ -67,12 +68,17 @@ void ButtonMPR121_Init() {
   #endif
 }
 
+void ButtonMPR121_update() {
+    touchsensor.updateTouchData();
+}
+
 void ButtonMPR121_Cyclic() {
 #ifdef PORT_TOUCHMPR121_ENABLE
-    if (touchsensor.touchStatusChanged()) {
+	if ((millis() - MPR121_LastCheckTimestamp) >= 400) {    // Implement IRQ:   if (touchsensor.touchStatusChanged()) {
+        MPR121_LastCheckTimestamp = millis();
 //                 Log_Println((char *) FPSTR(mpr121_IRQ), LOGLEVEL_DEBUG);
-        Serial.println("MPRHandler called  ->  IRQ LOW");
-        touchsensor.updateTouchData();
+//        Serial.println("MPRHandler called  ->  IRQ LOW");
+        i2c_tsafe_execute(ButtonMPR121_update);
         if (touchsensor.getNumTouches() <=2){
             for (int i = 0; i < numElectrodes; i++) {
                 if (touchsensor.isNewTouch(i)) {

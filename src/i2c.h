@@ -13,8 +13,10 @@
 extern TwoWire i2cBusOne;
 extern TwoWire i2cBusTwo;
 extern AC101 ac;
+extern SemaphoreHandle_t xSemaphore;
 
 void i2c_Init(void);
+void i2c_tsafe_execute(void (*)(void));
 void i2c_clear_lines(int PIN_SDA, int PIN_SCL);
 void i2c_scanExtBus(void);
 #endif

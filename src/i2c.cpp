@@ -2,6 +2,9 @@
 #include "settings.h"
 #include "i2c.h"
 
+SemaphoreHandle_t xSemaphore_I2C = NULL;
+void (*execFunction)(void);
+
 #if (HAL == 2)
     extern TwoWire i2cBusOne = TwoWire(0);
     extern AC101 ac(&i2cBusOne);
@@ -29,6 +32,9 @@ void i2c_Init() {
     #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined (PORT_TOUCHMPR121_ENABLE)
         i2c_clear_lines(ext_IIC_DATA, ext_IIC_CLK);
         i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK, 100000L);
+
+        // Create Mutex for i2c_access to avoid data collision
+        xSemaphore_I2C = xSemaphoreCreateMutex();
     #endif
 }
 
@@ -61,8 +67,33 @@ void i2c_clear_lines(int PIN_SDA, int PIN_SCL) {
     }   
 }
 
+void i2c_tsafe_execute(void (*execFunction)(void)) {
+  if(xSemaphore_I2C != NULL) {
+        /* See if we can obtain the semaphore.  If the semaphore is not
+        available wait 10 ticks to see if it becomes free. */
+        if( xSemaphoreTake( xSemaphore_I2C, ( TickType_t ) 15 ) == pdTRUE )
+        {
+            /* We were able to obtain the semaphore and can now access the
+            shared resource. */
+            // Serial.println("Semaphore succesfully taken!");
+            execFunction();
+
+            /* We have finished accessing the shared resource.  Release the
+            semaphore. */
+            xSemaphoreGive( xSemaphore_I2C );
+            // Serial.println("Semaphore released!");
+        }
+        else
+        {
+            /* We could not obtain the semaphore and can therefore not access
+            the shared resource safely. */
+            Serial.println("Semaphore could not be taken within 15 Ticks!");
+        }
+    }
+}
+
 void i2c_scanExtBus() {
-  byte error, address;
+    byte error, address;
   int nDevices;
   Serial.println("Scanning...");
   nDevices = 0;
