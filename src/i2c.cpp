@@ -67,27 +67,27 @@ void i2c_clear_lines(int PIN_SDA, int PIN_SCL) {
     }   
 }
 
-void i2c_tsafe_execute(void (*execFunction)(void)) {
+void i2c_tsafe_execute(void (*execFunction)(void), int waitTicks = 15) {
+  /* See if semaphore is initialized */
   if(xSemaphore_I2C != NULL) {
         /* See if we can obtain the semaphore.  If the semaphore is not
         available wait 10 ticks to see if it becomes free. */
-        if( xSemaphoreTake( xSemaphore_I2C, ( TickType_t ) 15 ) == pdTRUE )
+        if( xSemaphoreTake( xSemaphore_I2C, ( TickType_t ) waitTicks ) == pdTRUE )
         {
             /* We were able to obtain the semaphore and can now access the
             shared resource. */
-            // Serial.println("Semaphore succesfully taken!");
             execFunction();
-
             /* We have finished accessing the shared resource.  Release the
             semaphore. */
             xSemaphoreGive( xSemaphore_I2C );
-            // Serial.println("Semaphore released!");
         }
         else
         {
             /* We could not obtain the semaphore and can therefore not access
             the shared resource safely. */
-            Serial.println("Semaphore could not be taken within 15 Ticks!");
+            Serial.print("Semaphore could not be taken within ");
+            Serial.print(waitTicks);
+            Serial.print(" Ticks!");
         }
     }
 }

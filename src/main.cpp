@@ -190,10 +190,10 @@ void setup() {
     Mqtt_Init();
     #ifndef PN5180_ENABLE_LPCD
         // only execute threadsafe when i2c is used
-        i2c_tsafe_execute(Rfid_Init);
+        i2c_tsafe_execute(Rfid_Init,30);
     #endif
 
-    i2c_tsafe_execute(ButtonMPR121_Init);
+    i2c_tsafe_execute(ButtonMPR121_Init,30);
     RotaryEncoder_Init();
     Wlan_Init();
     Bluetooth_Init();
@@ -212,15 +212,16 @@ void setup() {
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
     snprintf(Log_Buffer, Log_BufferLength, "Flash-size: %u bytes", ESP.getFlashChipSize());
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-    if (Wlan_IsConnected()) {
+/*    if (Wlan_IsConnected()) {     // Redundant as it will be called cyclic
         snprintf(Log_Buffer, Log_BufferLength, "RSSI: %d dBm", Wlan_GetRssi());
         Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
     }
-    System_ShowUpgradeWarning();
+    System_ShowUpgradeWarning(); // not really necessary
+*/
 }
 
 void loop() {
-    Rfid_Cyclic();
+//    Rfid_Cyclic(); // Empty Function called
 
     if (OPMODE_BLUETOOTH == System_GetOperationMode()) {
         Bluetooth_Cyclic();
@@ -239,14 +240,12 @@ void loop() {
     ButtonMPR121_Cyclic();
     System_Cyclic();
     Rfid_PreferenceLookupHandler();
-    // i2c_tsafe_execute(i2c_scanExtBus); // just testing
-
-
+    
     #ifdef PLAY_LAST_RFID_AFTER_REBOOT
         recoverBootCountFromNvs();
         recoverLastRfidPlayedFromNvs();
     #endif
 
     IrReceiver_Cyclic();
-    vTaskDelay(portTICK_RATE_MS * 5u);
+    vTaskDelay(20u /portTICK_RATE_MS);
 }

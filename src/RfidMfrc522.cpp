@@ -60,19 +60,26 @@
     }
 
 	void Rfid_Task(void *parameter) {
-
+		TickType_t xLastWakeTime;
+		const TickType_t xFrequency = RFID_SCAN_INTERVAL / portTICK_RATE_MS;
 		byte cardId[cardIdSize];
 		String cardIdString;
 		byte lastValidcardId[cardIdSize];
 
-        for (;;) {
-			if ((millis() - Rfid_LastRfidCheckTimestamp) >= RFID_SCAN_INTERVAL) {
+		xLastWakeTime = xTaskGetTickCount();
 
+        for (;;) {
+			// Run Task only when needed
+			vTaskDelayUntil( &xLastWakeTime, xFrequency );
+/*			if ((millis() - Rfid_LastRfidCheckTimestamp) >= 2000) {
+				i2c_tsafe_execute(i2c_scanExtBus,5); // just testing the bus
+				}
+*/
 				cardAppliedCurrentRun = false;
 				cardRemovedCurrentRun = false;
 				sameCardReapplied = false;
-				Rfid_LastRfidCheckTimestamp = millis();
-				i2c_tsafe_execute(*scanRFID);
+//				Rfid_LastRfidCheckTimestamp = millis();
+				i2c_tsafe_execute(scanRFID,15);
 
 				if (cardAppliedCurrentRun && !cardApplied) {				// Card was just presented
 
@@ -95,17 +102,22 @@
 						memcpy(lastValidcardId, cardId, cardIdSize);
 					}
 
+			#ifdef PAUSE_WHEN_RFID_REMOVED		// Same-Card Check only makes Sense with Feature active
 				if (!sameCardReapplied) {       // Don't allow to send card to queue if it's the same card again...
+			#endif
 					xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
+			#ifdef PAUSE_WHEN_RFID_REMOVED		// Same-Card Check only makes Sense with Feature active
 				} else {
 					Log_Println((char *) FPSTR(rfidTagReapplied), LOGLEVEL_NOTICE);
 					// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
 					if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH) {
 						AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);       // ... play/pause instead (but not for BT)
-					} else if (gPlayProperties.playMode == NO_PLAYLIST) {
+					}
+					else if (gPlayProperties.playMode == NO_PLAYLIST) {
 						xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
 					}
 				}
+			#endif
 
 				} else {
 					if (cardRemovedCurrentRun) {
@@ -117,18 +129,18 @@
 						AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
 			#endif
 
-						i2c_tsafe_execute(*stopScan);
+						i2c_tsafe_execute(stopScan,15);
 						cardApplied = false;
 					 }
 				}
-			}
-
+//			}
+/*
 			if (RFID_SCAN_INTERVAL/2 >= 50) {
                 vTaskDelay((RFID_SCAN_INTERVAL/2) / portTICK_RATE_MS);
             } else {
                vTaskDelay(50 / portTICK_RATE_MS);
             }
-
+*/
 		}
 	}
 
@@ -175,10 +187,11 @@
 		mfrc522.PICC_HaltA();
 		mfrc522.PCD_StopCrypto1();
 	}
+/*
     void Rfid_Cyclic(void) {
         // Not necessary as cyclic stuff performed by task Rfid_Task()
     }
-
+*/
     void Rfid_Exit(void) {
     }
 
