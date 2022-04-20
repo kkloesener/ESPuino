@@ -132,7 +132,7 @@ void setup() {
     #endif
 
     System_Init();
-
+    // I2C wird zentral behandelt
     i2c_Init();
 
     #ifdef PORT_EXPANDER_ENABLE     // Needs i2c first

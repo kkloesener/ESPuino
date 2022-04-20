@@ -5,11 +5,13 @@
 SemaphoreHandle_t xSemaphore_I2C = NULL;
 void (*execFunction)(void);
 
+// initialise TwoWire for AC101 
 #if (HAL == 2)
     extern TwoWire i2cBusOne = TwoWire(0);
     extern AC101 ac(&i2cBusOne);
 #endif
 
+// initialise TwoWire for other Devices
 #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined (PORT_TOUCHMPR121_ENABLE)
     extern TwoWire i2cBusTwo = TwoWire(1);
 #endif

@@ -14,6 +14,7 @@ extern TwoWire i2cBusOne;
 extern TwoWire i2cBusTwo;
 extern AC101 ac;
 
+// alle wesentlichen Funktionen
 void i2c_Init(void);
 void i2c_tsafe_execute(void (*)(void), int waitTicks);
 void i2c_clear_lines(int PIN_SDA, int PIN_SCL);

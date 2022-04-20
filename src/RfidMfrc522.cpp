@@ -13,6 +13,7 @@
         #include <MFRC522.h>
     #endif
     #ifdef RFID_READER_TYPE_MFRC522_I2C
+		// Handling von I2C zentral
 		#include "i2c.h"
         #include <MFRC522_I2C.h>
     #endif

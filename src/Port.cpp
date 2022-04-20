@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "i2c.h"
+#include "i2c.h"    // I2C wird zentral gehandelt
 #include "settings.h"
 #include "Port.h"
 #include "Log.h"
