@@ -133,12 +133,7 @@ void setup() {
 
     System_Init();
 
-    // Init 2nd i2c-bus if RC522 is used with i2c or if port-expander is enabled
-    #if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE)
-        i2cBusTwo.begin(ext_IIC_DATA, ext_IIC_CLK);
-        delay(50);
-        Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
-    #endif
+    i2c_Init();
 
     #ifdef PORT_EXPANDER_ENABLE     // Needs i2c first
         Port_Init();
@@ -162,11 +157,7 @@ void setup() {
         gPlayProperties.newPlayMono = true;
         gPlayProperties.currentPlayMono = true;
     #endif
-
-    Led_Init();
     
-    i2c_Init();
-
     // Needs power first
     SdCard_Init();
 
@@ -204,7 +195,6 @@ void setup() {
 
     IrReceiver_Init();
     System_UpdateActivityTimer(); // initial set after boot
-    Led_Indicate(LedIndicatorType::BootComplete);
 
     snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
@@ -218,6 +208,8 @@ void setup() {
     }
     System_ShowUpgradeWarning(); // not really necessary
 */
+    vTaskDelay(100);
+    Led_Indicate(LedIndicatorType::BootComplete);
 }
 
 void loop() {
@@ -247,5 +239,5 @@ void loop() {
     #endif
 
     IrReceiver_Cyclic();
-    vTaskDelay(20u /portTICK_RATE_MS);
+    vTaskDelay(50);
 }
