@@ -53,7 +53,7 @@
                 NULL,                   /* Task input parameter */
                 1 | portPRIVILEGE_BIT,  /* Priority of the task */
                 NULL,                   /* Task handle. */
-                1          /* Core where the task should run */
+                0          /* Core where the task should run */
             );
 
             Log_Println((char *) FPSTR(rfidScannerReady), LOGLEVEL_DEBUG);
@@ -62,7 +62,7 @@
 
 	void Rfid_Task(void *parameter) {
 		TickType_t xLastWakeTime;
-		const TickType_t xFrequency = RFID_SCAN_INTERVAL / portTICK_RATE_MS;
+		const TickType_t xFrequency = RFID_SCAN_INTERVAL;
 		byte cardId[cardIdSize];
 		String cardIdString;
 		byte lastValidcardId[cardIdSize];
@@ -72,81 +72,71 @@
         for (;;) {
 			// Run Task only when needed
 			vTaskDelayUntil( &xLastWakeTime, xFrequency );
-/*			if ((millis() - Rfid_LastRfidCheckTimestamp) >= 2000) {
-				i2c_tsafe_execute(i2c_scanExtBus,5); // just testing the bus
-				}
-*/
-				cardAppliedCurrentRun = false;
-				cardRemovedCurrentRun = false;
-				sameCardReapplied = false;
-//				Rfid_LastRfidCheckTimestamp = millis();
-				i2c_tsafe_execute(scanRFID,15);
+//			Serial.print("RFID Task last run since (ms):" + String(millis() - Rfid_LastRfidCheckTimestamp));
+			Rfid_LastRfidCheckTimestamp = millis();
+			sameCardReapplied = false;
+			i2c_tsafe_execute(scanRFID,3);
 
-				if (cardAppliedCurrentRun && !cardApplied) {				// Card was just presented
+			if (cardAppliedCurrentRun && !cardApplied) {				// Card was just presented
 
-					memcpy(cardId, mfrc522.uid.uidByte, cardIdSize);
-					cardApplied = true;
+				memcpy(cardId, mfrc522.uid.uidByte, cardIdSize);
+				cardApplied = true;
 
-					if (memcmp((const void *)lastValidcardId, (const void *)cardId, cardIdSize) == 0) {
-						sameCardReapplied = true;
-						}
-					else {
-						Log_Print((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
-						cardIdString = "";
-						for (uint8_t i=0u; i < cardIdSize; i++) {
-							snprintf(Log_Buffer, Log_BufferLength, "%02x%s", cardId[i], (i < cardIdSize - 1u) ? "-" : "\n");
-							Log_Print(Log_Buffer, LOGLEVEL_NOTICE);
-							char num[4];
-							snprintf(num, sizeof(num), "%03d", cardId[i]);
-							cardIdString += num;
-						}
-						memcpy(lastValidcardId, cardId, cardIdSize);
+				if (memcmp((const void *)lastValidcardId, (const void *)cardId, cardIdSize) == 0) {
+					sameCardReapplied = true;
 					}
+				else {
+					Log_Print((char *) FPSTR(rfidTagDetected), LOGLEVEL_NOTICE);
+					cardIdString = "";
+					for (uint8_t i=0u; i < cardIdSize; i++) {
+						snprintf(Log_Buffer, Log_BufferLength, "%02x%s", cardId[i], (i < cardIdSize - 1u) ? "-" : "\n");
+						Log_Print(Log_Buffer, LOGLEVEL_NOTICE);
+						char num[4];
+						snprintf(num, sizeof(num), "%03d", cardId[i]);
+						cardIdString += num;
+					}
+					memcpy(lastValidcardId, cardId, cardIdSize);
+				}
 
-			#ifdef PAUSE_WHEN_RFID_REMOVED		// Same-Card Check only makes Sense with Feature active
-				if (!sameCardReapplied) {       // Don't allow to send card to queue if it's the same card again...
-			#endif
+		#ifdef PAUSE_WHEN_RFID_REMOVED		// Same-Card Check only makes Sense with Feature active
+			if (!sameCardReapplied) {       // Don't allow to send card to queue if it's the same card again...
+		#endif
+				xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
+		#ifdef PAUSE_WHEN_RFID_REMOVED		// Same-Card Check only makes Sense with Feature active
+			} else {
+				Log_Println((char *) FPSTR(rfidTagReapplied), LOGLEVEL_NOTICE);
+				// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
+				if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH) {
+					AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);       // ... play/pause instead (but not for BT)
+				}
+				else if (gPlayProperties.playMode == NO_PLAYLIST) {
 					xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
-			#ifdef PAUSE_WHEN_RFID_REMOVED		// Same-Card Check only makes Sense with Feature active
-				} else {
-					Log_Println((char *) FPSTR(rfidTagReapplied), LOGLEVEL_NOTICE);
-					// If pause-button was pressed while card was not applied, playback could be active. If so: don't pause when card is reapplied again as the desired functionality would be reversed in this case.
-					if (gPlayProperties.pausePlay && System_GetOperationMode() != OPMODE_BLUETOOTH) {
-						AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);       // ... play/pause instead (but not for BT)
-					}
-					else if (gPlayProperties.playMode == NO_PLAYLIST) {
-						xQueueSend(gRfidCardQueue, cardIdString.c_str(), 0);
-					}
 				}
-			#endif
+			}
+		#endif
 
-				} else {
-					if (cardRemovedCurrentRun) {
-						Log_Println((char *) FPSTR(rfidTagRemoved), LOGLEVEL_NOTICE);
+			} else {
+				if (cardRemovedCurrentRun) {
+					Log_Println((char *) FPSTR(rfidTagRemoved), LOGLEVEL_NOTICE);
 
-			#ifdef PAUSE_WHEN_RFID_REMOVED
-						// Send Pause when Card is removed
-						// Serial.print("Send PAUSEPLAY");
-						AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
-			#endif
+		#ifdef PAUSE_WHEN_RFID_REMOVED
+					// Send Pause when Card is removed
+					// Serial.print("Send PAUSEPLAY");
+					AudioPlayer_TrackControlToQueueSender(PAUSEPLAY);
+		#endif
 
-						i2c_tsafe_execute(stopScan,15);
-						cardApplied = false;
-					 }
-				}
-//			}
-/*
-			if (RFID_SCAN_INTERVAL/2 >= 50) {
-                vTaskDelay((RFID_SCAN_INTERVAL/2) / portTICK_RATE_MS);
-            } else {
-               vTaskDelay(50 / portTICK_RATE_MS);
-            }
-*/
+					cardApplied = false;
+					}
+			}
+			i2c_tsafe_execute(stopScan,3);
+//			Serial.println("RFID Task needed (ms):" + String(millis() - Rfid_LastRfidCheckTimestamp);
 		}
 	}
 
 	void scanRFID() {
 		uint8_t control;
+		cardAppliedCurrentRun = false;
+		cardRemovedCurrentRun = false;
 		// Check Status of Card if New or Removed in actual Run
 		// https://github.com/miguelbalboa/rfid/issues/188; voodoo! :-)
 //		while (true) {
