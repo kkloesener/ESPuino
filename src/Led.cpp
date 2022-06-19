@@ -43,7 +43,7 @@ uint8_t lastPos = gPlayProperties.currentRelPos;
 bool notificationProgress = true;
 bool showEvenError = false;
 bool turnedOffLeds = false;
-uint16_t ledChgInterval = 100; // time in msecs, adjust for responsiveness of LED Actions (minimum ??)
+uint16_t ledChgInterval = 80; // time in msecs, adjust for responsiveness of LED Actions (minimum ??)
 uint16_t ledSlowInterval = 800; // Intervalfor visual changes of "normal" Modes ie. not Notifications
 
     // Only enable measurements if valid GPIO is used
@@ -166,7 +166,7 @@ void LedTask(void *parameter) {
         static CRGB::HTMLColorCode generalColor;
 
 		TickType_t xLastWakeTime;
-		const TickType_t xFrequency = 210;  // Ticks entsprechen etwa 110msec
+		const TickType_t xFrequency = (ledChgInterval *2)+10 ;
 		xLastWakeTime = xTaskGetTickCount();
         
 
