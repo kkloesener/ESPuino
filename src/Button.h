@@ -10,6 +10,7 @@ typedef struct {
     unsigned long firstPressedTimestamp;
 } t_button;
 
+extern t_button gButtons[7];
 extern uint8_t gShutdownButton;
 extern bool gButtonInitComplete;
 
