@@ -146,8 +146,7 @@ void setup() {
     Ftp_Init();
     Mqtt_Init();
     #ifndef PN5180_ENABLE_LPCD
-        // only execute threadsafe when i2c is used
-        Rfid_Init;
+        Rfid_Init();
     #endif
 
     RotaryEncoder_Init();
