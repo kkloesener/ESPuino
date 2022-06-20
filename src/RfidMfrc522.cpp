@@ -180,7 +180,6 @@
 				control += 0x1;
 				delay(5);
 				}
-			Serial.println(control);
 			if (control <20 ) {
 				// Card still present
 				break;
