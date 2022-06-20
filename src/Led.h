@@ -3,12 +3,13 @@
 typedef enum class LedIndicator
 {
     BootComplete = 0,
-    Error,
     Ok,
+    Error,
     PlaylistProgress,
     Rewind,
     Voltage,
-    VoltageWarning
+    VoltageWarning,
+    Volume
 } LedIndicatorType;
 
 void Led_Init(void);
