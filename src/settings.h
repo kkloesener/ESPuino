@@ -156,7 +156,7 @@
     constexpr uint16_t intervalToLongPress = 700;                 // Interval in ms to distinguish between short and long press of previous/next-button
 
     // RFID-RC522
-    #define RFID_SCAN_INTERVAL 1000                      // Interval-time in ms (how often is RFID read?) - keep as large as possible!
+    #define RFID_SCAN_INTERVAL 400                      // Interval-time in ms (how often is RFID read?) - keep as large as possible!
 
     // Automatic restart
     #ifdef SHUTDOWN_IF_SD_BOOT_FAILS
