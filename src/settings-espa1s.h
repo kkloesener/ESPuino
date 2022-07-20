@@ -1,7 +1,6 @@
 #ifndef __ESPUINO_SETTINGS_ESPA1S_H__
 #define __ESPUINO_SETTINGS_ESPA1S_H__
     #include "Arduino.h"
-    #include <settings.h>
 
     //######################### INFOS ####################################
     /* This is a develboard-specific config-file for *AI Tinker ESP32-A1S-AudioKit*. It's highly customized and almost certainly
@@ -33,7 +32,7 @@
         #define MFRC522_IRQ_PIN                 13          // currently not used -> MTCK on JTAG header
     #endif
 
-    // I2C-configuration (necessary for RC522 [only via i2c - not spi!] or port-expander)
+    // I2C-configuration (necessary for RC522 [only via i2c - not spi!], port-expander or other i2c devices)
     #ifdef I2C_2_ENABLE
         #define ext_IIC_CLK                 18          // i2c-SCL (clock) [14 pin-header]
         #define ext_IIC_DATA                 5          // i2c-SDA (data) [14 pin-header]

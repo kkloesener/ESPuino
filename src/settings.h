@@ -180,8 +180,8 @@
     // (optinal) Neopixel
     #ifdef NEOPIXEL_ENABLE
         #define NUM_LEDS                    24          // number of LEDs
-        #define CHIPSET                     WS2812      // type of Neopixel
-        #define COLOR_ORDER                 GRB         //
+        #define CHIPSET                     WS2812B     // type of Neopixel
+        #define COLOR_ORDER                 GRB
     #endif
 
     #if defined(MEASURE_BATTERY_VOLTAGE) || defined(MEASURE_BATTERY_MAX17055)
