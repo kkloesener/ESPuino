@@ -180,6 +180,7 @@
 				control += 0x1;
 				delay(5);
 				}
+			Serial.println(control);
 			if (control <20 ) {
 				// Card still present
 				break;
@@ -202,54 +203,12 @@
 
 	}
 
-	void scanRFID() {
-		uint8_t control;
-		// Check Status of Card if New or Removed in actual Run
-		// https://github.com/miguelbalboa/rfid/issues/188; voodoo! :-)
-//		while (true) {
-			control=0x00;
-			for (uint8_t i=0u; i<3; i++) {
-				if (mfrc522.PICC_IsNewCardPresent()) {
-					if (mfrc522.PICC_ReadCardSerial()) {
-						control |= 0x16;
-					}
-					if (mfrc522.PICC_ReadCardSerial()) {
-						control |= 0x16;
-					}
-					control += 0x1;
-				}
-				control += 0x4;
-			}
-/*
-				Serial.print("Card Control is: ");
-				Serial.println(control);
-*/
-			if (control > 30) {
-				//card is present
-//						Serial.println("Card present in run");
-				cardAppliedCurrentRun = true;
-//				break; // Break Loop 
-				}
-			else {
-				if (cardApplied) {
-					//card is removed
-//							Serial.println("Card removed in run");
-					cardRemovedCurrentRun = true;
-					}
-//				break;
-			}
-//		}
-	}
-
-	void stopScan() {
-		mfrc522.PICC_HaltA();
-		mfrc522.PCD_StopCrypto1();
-	}
-/*
-    void Rfid_Cyclic(void) {
+/*    void Rfid_Cyclic(void) {
         // Not necessary as cyclic stuff performed by task Rfid_Task()
     }
 */
+#endif
+
     void Rfid_Exit(void) {
 		mfrc522.PCD_WriteRegister(mfrc522.CommandReg, mfrc522.PCD_NoCmdChange | 0x10);
     }
