@@ -1,6 +1,5 @@
 // !!! MAKE SURE TO EDIT settings.h !!!
 #include <Arduino.h>
-//#include <Wire.h>
 #include "settings.h" // Contains all user-relevant settings (general)
 
 #include "i2c.h"
@@ -91,32 +90,6 @@
     }
 #endif
 
-// Print the wake-up reason why ESP32 is awake now
-void printWakeUpReason() {
-    esp_sleep_wakeup_cause_t wakeup_reason;
-    wakeup_reason = esp_sleep_get_wakeup_cause();
-
-    switch (wakeup_reason) {
-        case ESP_SLEEP_WAKEUP_EXT0:
-            Serial.println(F("Wakeup caused by push button"));
-            break;
-        case ESP_SLEEP_WAKEUP_EXT1:
-            Serial.println(F("Wakeup caused by low power card detection"));
-            break;
-        case ESP_SLEEP_WAKEUP_TIMER:
-            Serial.println(F("Wakeup caused by timer"));
-            break;
-        case ESP_SLEEP_WAKEUP_TOUCHPAD:
-            Serial.println(F("Wakeup caused by touchpad"));
-            break;
-        case ESP_SLEEP_WAKEUP_ULP:
-            Serial.println(F("Wakeup caused by ULP program"));
-            break;
-        default:
-            Serial.printf("Wakeup was not caused by deep sleep: %d\n", wakeup_reason);
-            break;
-    }
-}
 
 void setup() {
     Log_Init();
@@ -132,12 +105,12 @@ void setup() {
     #endif
 
     System_Init();
+
     // I2C wird zentral behandelt
     i2c_Init();
-
-    #ifdef PORT_EXPANDER_ENABLE     // Needs i2c first
-        Port_Init();
-    #endif
+    
+    // Needs i2c first if port-expander is used
+    Port_Init();
 
     // If port-expander is used, port_init has to be called first, as power can be (possibly) done by port-expander
     Power_Init();
@@ -153,11 +126,8 @@ void setup() {
     memset(&gPlayProperties, 0, sizeof(gPlayProperties));
     gPlayProperties.playlistFinished = true;
 
-    #ifdef PLAY_MONO_SPEAKER
-        gPlayProperties.newPlayMono = true;
-        gPlayProperties.currentPlayMono = true;
-    #endif
-    
+    Led_Init();
+
     // Needs power first
     SdCard_Init();
 
@@ -173,7 +143,7 @@ void setup() {
     Serial.println("ESP-IDF version: " + String(ESP.getSdkVersion()));
 
     // print wake-up reason
-    printWakeUpReason();
+    System_ShowWakeUpReason();
 	// print SD card info
     SdCard_PrintInfo();
 
@@ -195,26 +165,25 @@ void setup() {
 
     IrReceiver_Init();
     System_UpdateActivityTimer(); // initial set after boot
-
+    
     snprintf(Log_Buffer, Log_BufferLength, "%s: %u", (char *) FPSTR(freeHeapAfterSetup), ESP.getFreeHeap());
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
     snprintf(Log_Buffer, Log_BufferLength, "PSRAM: %u bytes", ESP.getPsramSize());
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
     snprintf(Log_Buffer, Log_BufferLength, "Flash-size: %u bytes", ESP.getFlashChipSize());
     Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
-/*    if (Wlan_IsConnected()) {     // Redundant as it will be called cyclic
+/*  Will be called Cyclic
+    if (Wlan_IsConnected()) {
         snprintf(Log_Buffer, Log_BufferLength, "RSSI: %d dBm", Wlan_GetRssi());
         Log_Println(Log_Buffer, LOGLEVEL_DEBUG);
     }
-    System_ShowUpgradeWarning(); // not really necessary
 */
+    System_ShowUpgradeWarning();
     vTaskDelay(100);
     Led_Indicate(LedIndicatorType::BootComplete);
 }
 
 void loop() {
-//    Rfid_Cyclic(); // Empty Function called
-
     if (OPMODE_BLUETOOTH == System_GetOperationMode()) {
         Bluetooth_Cyclic();
     } else {

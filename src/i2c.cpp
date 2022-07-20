@@ -12,7 +12,8 @@ void (*execFunction)(void);
 #endif
 
 // initialise TwoWire for other Devices
-#if defined(RFID_READER_TYPE_MFRC522_I2C) || defined(PORT_EXPANDER_ENABLE) || defined (PORT_TOUCHMPR121_ENABLE)
+
+#ifdef I2C_2_ENABLE
     extern TwoWire i2cBusTwo = TwoWire(1);
 #endif
 
@@ -73,7 +74,7 @@ void i2c_tsafe_execute(void (*execFunction)(void), int waitTicks = 15) {
   /* See if semaphore is initialized */
   if(xSemaphore_I2C != NULL) {
         /* See if we can obtain the semaphore.  If the semaphore is not
-        available wait 10 ticks to see if it becomes free. */
+        available wait defined number of ticks to see if it becomes free. */
         if( xSemaphoreTake( xSemaphore_I2C, ( TickType_t ) waitTicks ) == pdTRUE )
         {
             /* We were able to obtain the semaphore and can now access the
@@ -86,20 +87,11 @@ void i2c_tsafe_execute(void (*execFunction)(void), int waitTicks = 15) {
         else
         {
             /* We could not obtain the semaphore and can therefore not access
-            the shared resource safely. */
+            the shared resource safely. Throw Error */
             Serial.print("Semaphore could not be taken within ");
             Serial.print(waitTicks);
             Serial.print(" Ticks!");
-        }
-    }
-}
-
-void i2c_scanExtBus() {
-    byte error, address;
-  int nDevices;
-  Serial.println("Scanning...");
   nDevices = 0;
-  for(address = 1; address < 127; address++ ) {
     i2cBusTwo.beginTransmission(address);
     error = i2cBusTwo.endTransmission();
     if (error == 0) {
