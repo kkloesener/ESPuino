@@ -83,6 +83,7 @@ void Led_Init(void) {
         FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
         FastLED.setBrightness(Led_Brightness);
 
+
         xTaskCreatePinnedToCore(
             LedTask,   /* Function to implement the task */
             "LedTask", /* Name of the task */
@@ -94,6 +95,11 @@ void Led_Init(void) {
         );
 
         FastLED.clear(true);
+
+    #endif
+}
+
+void Led_Exit(void) {
     #ifdef NEOPIXEL_ENABLE
         FastLED.clear(true);
     #endif
@@ -343,7 +349,6 @@ void LedTask(void *parameter) {
                                 leds[Led_Address(led)] = CRGB::Red;
                             }
                         }
-                        FastLED.show();
                     }
 
                 }
@@ -460,13 +465,6 @@ void LedTask(void *parameter) {
                         }
                     }
                 }
-                if (ledStaticCounter == 5) {
-                    LED_INDICATOR_CLEAR(LedIndicatorType::PlaylistProgress);
-                    notificationProgress = false;
-                    redrawChgProgress = true;
-                } else {
-                    ledStaticCounter--;
-                }
             }
 
             switch (gPlayProperties.playMode) {
@@ -546,10 +544,12 @@ void LedTask(void *parameter) {
                                     } else {
                                         ledStaticCounter = 1;
                                     }
+                                }
 
-                                    generalColor = CRGB::Orange;
-                                        generalColor = speechColor;
-                                    }
+                                generalColor = CRGB::Orange;
+                                if (gPlayProperties.currentSpeechActive) {
+                                    generalColor = speechColor;
+                                }
 
                                 leds[Led_Address(0) + ledStaticCounter] = generalColor;
                                 if (NUM_LEDS > 1) {

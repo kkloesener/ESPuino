@@ -41,7 +41,8 @@
     #ifdef PORT_TOUCHMPR121_ENABLE
         #define MPR121_IRQ_PIN                  13          // MTCK on JTAG header -> Review WAKEUP_BUTTON!!
         #define MPR121_I2C_ADR                0x5A          // Default address is 0x5A, if tied to 3.3V its 0x5B. If tied to SDA its 0x5C and if SCL then 0x5D
-
+    #endif
+    
     // I2S (DAC)
     #define I2S_DOUT                            25          // Digital out (I2S)
     #define I2S_BCLK                            27          // BCLK (I2S)
