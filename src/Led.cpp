@@ -83,6 +83,8 @@ void Led_Init(void) {
         FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
         FastLED.setBrightness(Led_Brightness);
 
+        //FastLED.clear(true);
+        Serial.println("LED Init fertig");
 
         xTaskCreatePinnedToCore(
             LedTask,   /* Function to implement the task */
@@ -93,8 +95,6 @@ void Led_Init(void) {
             NULL,       /* Task handle. */
             0           /* Core where the task should run */
         );
-
-        FastLED.clear(true);
 
     #endif
 }
