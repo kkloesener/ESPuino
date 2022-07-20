@@ -91,7 +91,16 @@ void i2c_tsafe_execute(void (*execFunction)(void), int waitTicks = 15) {
             Serial.print("Semaphore could not be taken within ");
             Serial.print(waitTicks);
             Serial.print(" Ticks!");
+        }
+    }
+}
+
+void i2c_scanExtBus() {
+    byte error, address;
+  int nDevices;
+  Serial.println("Scanning...");
   nDevices = 0;
+  for(address = 1; address < 127; address++ ) {
     i2cBusTwo.beginTransmission(address);
     error = i2cBusTwo.endTransmission();
     if (error == 0) {

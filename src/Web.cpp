@@ -220,6 +220,10 @@ void webserverStart(void) {
                 #endif
 
                 if (!index) {
+                    if (!gPlayProperties.pausePlay) {   // Pause playback as it sounds ugly when OTA starts
+                        Cmd_Action(CMD_PLAYPAUSE);  // Pause first to possibly to save last playposition (if necessary)
+                        Cmd_Action(CMD_STOP);
+                    }
                     Update.begin();
                     Log_Println((char *) FPSTR(fwStart), LOGLEVEL_NOTICE);
                 }
@@ -458,8 +462,9 @@ bool processJsonRequest(char *_serialJson) {
             gPrefsSettings.getFloat("vIndicatorLow", 999.99) != vIndLow ||
             gPrefsSettings.getFloat("vIndicatorHigh", 999.99) != vIndHi ||
             gPrefsSettings.getUInt("vCheckIntv", 17777) != vInt) {
-            return false;
+                return false;
         }
+        Battery_Init();
     } else if (doc.containsKey("ftp")) {
         const char *_ftpUser = doc["ftp"]["ftpUser"];
         const char *_ftpPwd = doc["ftp"]["ftpPwd"];

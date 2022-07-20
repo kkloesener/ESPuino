@@ -343,6 +343,7 @@ void LedTask(void *parameter) {
                                 leds[Led_Address(led)] = CRGB::Red;
                             }
                         }
+                        FastLED.show();
                     }
 
                 }

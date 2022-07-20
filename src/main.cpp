@@ -108,7 +108,6 @@ void setup() {
 
     // I2C wird zentral behandelt
     i2c_Init();
-    
     // Needs i2c first if port-expander is used
     Port_Init();
 
