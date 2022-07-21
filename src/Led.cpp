@@ -40,10 +40,10 @@ unsigned long lastChgTimestamp = 0;
 unsigned long lastSlowTimestamp = 0;
 uint8_t lastLedBrightness = Led_Brightness;
 uint8_t lastPos = gPlayProperties.currentRelPos;
-bool notificationProgress = true;
+bool notificationProgress = false;
 bool showEvenError = false;
 bool turnedOffLeds = false;
-uint16_t ledChgInterval = 75; // time in msecs, adjust for responsiveness of LED Actions (minimum ??)
+uint16_t ledChgInterval = 100; // time in msecs, adjust for responsiveness of LED Actions (minimum ??)
 uint16_t ledSlowInterval = 650; // Intervalfor visual changes of "normal" Modes ie. not Notifications
 
     // Only enable measurements if valid GPIO is used
@@ -83,6 +83,7 @@ void Led_Init(void) {
         FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
         FastLED.setBrightness(Led_Brightness);
 
+        FastLED.clear();
 
         xTaskCreatePinnedToCore(
             LedTask,   /* Function to implement the task */
@@ -93,8 +94,6 @@ void Led_Init(void) {
             NULL,       /* Task handle. */
             0           /* Core where the task should run */
         );
-
-        FastLED.clear(true);
 
     #endif
 }
@@ -161,7 +160,7 @@ void LedTask(void *parameter) {
         static uint8_t ledPosWebstream = 0;
         static uint8_t webstreamColor = 0;
         static bool redrawChgProgress = false; // used to invoke fast LED actions
-        static bool redrawSlowProgress = true; // used to invoke slow LED actions
+        static bool redrawSlowProgress = false; // used to invoke slow LED actions
         static CRGB::HTMLColorCode idleColor;
         static CRGB::HTMLColorCode speechColor = CRGB::Yellow;
         static CRGB::HTMLColorCode generalColor;
@@ -172,8 +171,10 @@ void LedTask(void *parameter) {
         
 
         for (;;) {
-            FastLED.show();
             // first iterate through Task - at the End DelayUntil to avoid double calls
+            FastLED.show();
+
+            // set states
             redrawChgProgress = false;
             redrawSlowProgress = false;
             if ((millis() - lastChgTimestamp) >= (ledChgInterval-5)) { // give a little more headroom, when Ticks not exact calculated to Time
@@ -199,10 +200,6 @@ void LedTask(void *parameter) {
                 LED_INDICATOR_SET(LedIndicatorType::Volume);
                 }
             
-            if (LED_INDICATOR_IS_SET(LedIndicatorType::BootComplete)) {
-                notificationProgress = false;
-            }
-
             if (System_IsSleepRequested()) { // If deepsleep is planned, turn off LEDs first in order to avoid LEDs still glowing when ESP32 is in deepsleep
                 FastLED.clear(true);
                 vTaskSuspend( NULL );
@@ -224,7 +221,6 @@ void LedTask(void *parameter) {
                 } else {
                     leds[Led_Address(ledChgCounter)] = CRGB::Red;
                 }
-
             }
 
             // Multi-LED: all leds flash red 1x
@@ -234,6 +230,7 @@ void LedTask(void *parameter) {
                     ledStaticCounter = 0;
                     notificationProgress = !notificationProgress;
                 }
+
                 if (NUM_LEDS == 1) {
                     if (ledStaticCounter % 2 == 0) {
                         leds[0] = CRGB::Red;
@@ -241,18 +238,21 @@ void LedTask(void *parameter) {
                         leds[0] = CRGB::Black;
                     }
                 } else {
-                    for (uint8_t led = 0; led < NUM_LEDS; led++) {
-                        leds[Led_Address(led)] = CRGB::Red;
+                    if (ledStaticCounter % 2 == 0) {
+                        for (uint8_t led = 0; led < NUM_LEDS; led++) {
+                            leds[Led_Address(led)] = CRGB::Black;
+                        }
+                    } else {
+                        for (uint8_t led = 0; led < NUM_LEDS; led++) {
+                            leds[Led_Address(led)] = CRGB::Red;
+                        }
                     }
                 }
 
-                if (ledStaticCounter == 10) {
+                if (ledStaticCounter >= 10) {
                     LED_INDICATOR_CLEAR(LedIndicatorType::Error);
                     notificationProgress = false;
-                }
-                else {
-                    ledStaticCounter++;
-                }
+                } else { ledStaticCounter++; }
             }
 
             // Multi-LED: all leds flash green 1x
@@ -275,13 +275,10 @@ void LedTask(void *parameter) {
                     }
                 }
 
-                if (ledStaticCounter == 10) {
+                if (ledStaticCounter >= 10) {
                     LED_INDICATOR_CLEAR(LedIndicatorType::Ok);
                     notificationProgress = false;
-                }
-                else {
-                    ledStaticCounter++;
-                }
+                } else { ledStaticCounter++; }
             }
 
             #ifdef ENABLE_BATTERY_MEASUREMENTS
@@ -307,15 +304,17 @@ void LedTask(void *parameter) {
                 if (ledStaticCounter == 6) { // Indicator needs 6 Iterations to complete. Time needed: ledChgInterval * 6
                     LED_INDICATOR_CLEAR(LedIndicatorType::VoltageWarning);
                     notificationProgress = false;
-                }
-                else {
-                    ledStaticCounter++;
-                }
+                } else { ledStaticCounter++; }
             }
 
             // Single-LED: indicates voltage coloured between gradient green (high) => red (low)
             // Multi-LED: number of LEDs indicates voltage-level with having green >= 60% ; orange < 60% + >= 30% ; red < 30%
             if (LED_INDICATOR_IS_SET(LedIndicatorType::Voltage)) {
+                if (!notificationProgress) {
+                    ledStaticCounter = 0;
+                    notificationProgress = !notificationProgress;
+                }
+
                 LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
                 float currentVoltage = Battery_GetVoltage();
                 float vDiffIndicatorRange = voltageIndicatorHigh - voltageIndicatorLow;
@@ -325,7 +324,6 @@ void LedTask(void *parameter) {
                     LED_INDICATOR_SET(LedIndicatorType::Error);
                     break;
                 } else {
-                    FastLED.clear();
                     if (NUM_LEDS == 1) {
                         if ((float) vDiffCurrent / vDiffIndicatorRange >= 0.6) {
                             leds[0] = CRGB::Green;
@@ -334,7 +332,6 @@ void LedTask(void *parameter) {
                         } else {
                             leds[0] = CRGB::Red;
                         }
-                        FastLED.show();
                     } else {
                         uint8_t numLedsToLight = ((float)vDiffCurrent / vDiffIndicatorRange) * NUM_LEDS;
                         if (numLedsToLight > NUM_LEDS) {    // Can happen e.g. if no battery is connected
@@ -352,10 +349,13 @@ void LedTask(void *parameter) {
                     }
 
                 }
+                if (ledStaticCounter == 3) { // Show Indicator this long: ledChgInterval * 3
+                    LED_INDICATOR_CLEAR(LedIndicatorType::Voltage);
+                    notificationProgress = false;
+                } else { ledStaticCounter++; }
             }
             #endif
 
-// Hier sollte ein Status Handling per Indicator genutzt werden
             // Single-LED: led indicates loudness between green (low) => red (high)
             // Multiple-LEDs: number of LEDs indicate loudness; gradient is shown between green (low) => red (high)
             if (LED_INDICATOR_IS_SET(LedIndicatorType::Volume)) { // If volume has been changed
@@ -373,7 +373,7 @@ void LedTask(void *parameter) {
                         leds[Led_Address(led)].setHue((uint8_t)(85 - ((double)90 / NUM_LEDS) * led));
                     }
                 }
-                if (ledStaticCounter == 2) { // Show Indicator this long: ledChgInterval * 2
+                if (ledStaticCounter == 3) { // Show Indicator this long: ledChgInterval * 3
                     LED_INDICATOR_CLEAR(LedIndicatorType::Volume);
                     notificationProgress = false;
                 }
@@ -423,7 +423,7 @@ void LedTask(void *parameter) {
                         leds[Led_Address(i)] = CRGB::Blue;
                     }
                 }
-                if (ledStaticCounter == 5) {
+                if (ledStaticCounter == 3) {
                     LED_INDICATOR_CLEAR(LedIndicatorType::PlaylistProgress);
                     notificationProgress = false;
                 } else {
@@ -432,7 +432,11 @@ void LedTask(void *parameter) {
             }
             #endif
 
-            }  // End Special-Notifications 
+/*            // When notification ended clear once with immediate blank out.
+            if (!notificationProgress) {
+                FastLED.clear(true);
+            }
+*/            }  // End Special-Notifications 
         else { // Begin Normal Handling
 
             // Multi-LED: growing red as long button for sleepmode is pressed.
