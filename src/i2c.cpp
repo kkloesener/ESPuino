@@ -24,6 +24,9 @@ void i2c_Init() {
         i2cBusOne.begin(IIC_DATA, IIC_CLK, 100000L);
 
         ac.begin();
+        ac.SetVolumeSpeaker(55); // Maximum would be 63 
+        ac.SetVolumeHeadphone(55); // Maximum would be 63
+        
         pinMode(22, OUTPUT);
         digitalWrite(22, HIGH);
 
