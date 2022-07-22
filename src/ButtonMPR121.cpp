@@ -1,7 +1,8 @@
 #include <Arduino.h>
+#include <esp_task_wdt.h>
 #include "settings.h"
 #include "Log.h"
-#include "i2c.h"
+#include "i2c.h"<
 #include <MPR121.h>
 #include "ButtonMPR121.h"
 #include "Button.h"
@@ -12,17 +13,17 @@ MPR121_type touchsensor = MPR121_type();
 const int numElectrodes = 3;
 t_button touchbuttons[numElectrodes -1];    // next + prev + pplay + rotEnc + button4 + button5 + dummy-button
 unsigned long MPR121_LastCheckTimestamp;
+TaskHandle_t xHandleMPR121;
 
-static void ButtonMPR121_Task(void *parameter);
+void ButtonMPR121_Task(void *parameter);
 
 void ButtonMPR121_update() {
     touchsensor.updateTouchData();
 }
 #endif
 
-void ButtonMPR121_Init() {
-#ifdef PORT_TOUCHMPR121_ENABLE
-/*    if (touchsensor.isInited()) {
+void ButtonMPR121_Init_func() {
+    if (touchsensor.isInited()) {
 //                 Log_Println((char *) FPSTR(mpr121_initiated), LOGLEVEL_INFO);
         Serial.println("MPR already initiated - checking for RUN");
         if (!touchsensor.isRunning()) {
@@ -33,7 +34,7 @@ void ButtonMPR121_Init() {
 //                 Log_Println((char *) FPSTR(mpr121_running), LOGLEVEL_INFO);
             Serial.println("MPR Running - nothing more to do");
         }
-    } else { */
+    } else { 
     touchsensor.clearError();
     if (!touchsensor.begin(MPR121_I2C_ADR, 40, 20, MPR121_IRQ_PIN, &i2cBusTwo)) {
             Serial.print("MPR121 ERROR: ");
@@ -66,11 +67,18 @@ void ButtonMPR121_Init() {
         if (touchsensor.isInited()) {Serial.println("MPR121 initialized");}
 //                 Log_Println((char *) FPSTR(mpr121_running), LOGLEVEL_INFO);
         if (touchsensor.isRunning()) {Serial.println("MPR121 running");}
-//    }
+        }
     }
+}
+
+void ButtonMPR121_Init() {
+#ifdef PORT_TOUCHMPR121_ENABLE
+    i2c_tsafe_execute(ButtonMPR121_Init_func,30);
+
+    if (touchsensor.isRunning()) {
 
     touchsensor.autoSetElectrodes();  // autoset all electrode settings
-    touchsensor.updateTouchData();
+    i2c_tsafe_execute(ButtonMPR121_update,30);
 
     xTaskCreatePinnedToCore(
         ButtonMPR121_Task,              /* Function to implement the task */
@@ -79,27 +87,20 @@ void ButtonMPR121_Init() {
         NULL,                   /* Task input parameter */
         2,          /* Priority of the task */
 //                1 | portPRIVILEGE_BIT,  /* Priority of the task */
-        NULL,                   /* Task handle. */
-        1          /* Core where the task should run */
+        &xHandleMPR121,                   /* Task handle. */
+        i2cOnCore          /* Core where the task should run */
     );
 
+    }
   #endif
 }
 
 #ifdef PORT_TOUCHMPR121_ENABLE
 void ButtonMPR121_Task(void *parameter) {
-		TickType_t xLastWakeTime;
-		const TickType_t xFrequency = 250 / portTICK_RATE_MS;
-
-		xLastWakeTime = xTaskGetTickCount();
-
     for (;;) {
     // Run Task only when needed
-    vTaskDelayUntil( &xLastWakeTime, xFrequency );
-
 //                 Log_Println((char *) FPSTR(mpr121_IRQ), LOGLEVEL_DEBUG);
-    if (touchsensor.touchStatusChanged()) { // temporary should be called external to wake task
-        i2c_tsafe_execute(ButtonMPR121_update,50);
+        i2c_tsafe_execute(ButtonMPR121_update,30);
         if (touchsensor.getNumTouches() <=2){
             for (int i = 0; i < numElectrodes; i++) {
                 if (touchsensor.isNewTouch(i)) {
@@ -113,14 +114,15 @@ void ButtonMPR121_Task(void *parameter) {
                 }
             }
         }
-    }}
+        vTaskSuspend(xHandleMPR121);
+    }
 }
 #endif
 
 void ButtonMPR121_Cyclic() {
 #ifdef PORT_TOUCHMPR121_ENABLE
     if (touchsensor.touchStatusChanged()) {
-        //WakeUp Task handling the Work
+        vTaskResume(xHandleMPR121);
     }
 
 #endif

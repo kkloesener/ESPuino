@@ -148,12 +148,13 @@ void setup() {
 
     Ftp_Init();
     Mqtt_Init();
+
     #ifndef PN5180_ENABLE_LPCD
         // only execute threadsafe when i2c is used
-        i2c_tsafe_execute(Rfid_Init,30);
+        Rfid_Init();
     #endif
 
-    i2c_tsafe_execute(ButtonMPR121_Init,30);
+    ButtonMPR121_Init();
     RotaryEncoder_Init();
     Wlan_Init();
     Bluetooth_Init();
