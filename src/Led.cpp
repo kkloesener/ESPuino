@@ -32,19 +32,19 @@
     uint8_t Led_Address(uint8_t number);
     CRGB leds[NUM_LEDS];
 
-// moved from task - otherwise strange results
-uint8_t ledChgCounter = 0; // Counts up whith ledChgInterval
-uint8_t ledSlowCounter = 0; // Counts up whith ledSlowInterval
-uint8_t ledStaticCounter = 0; // Can be used in Special Functions like Shutdown-Button
-unsigned long lastChgTimestamp = 0;
-unsigned long lastSlowTimestamp = 0;
-uint8_t lastLedBrightness = Led_Brightness;
-uint8_t lastPos = gPlayProperties.currentRelPos;
-bool notificationProgress = false;
-bool showEvenError = false;
-bool turnedOffLeds = false;
-uint16_t ledChgInterval = 100; // time in msecs, adjust for responsiveness of LED Actions (minimum ??)
-uint16_t ledSlowInterval = 650; // Intervalfor visual changes of "normal" Modes ie. not Notifications
+    // moved from task - otherwise strange results
+    uint8_t ledChgCounter = 0; // Counts up whith ledChgInterval
+    uint8_t ledSlowCounter = 0; // Counts up whith ledSlowInterval
+    uint8_t ledStaticCounter = 0; // Can be used in Special Functions like Shutdown-Button
+    unsigned long lastChgTimestamp = 0;
+    unsigned long lastSlowTimestamp = 0;
+    uint8_t lastLedBrightness = Led_Brightness;
+    uint8_t lastPos = gPlayProperties.currentRelPos;
+    bool notificationProgress = false;
+    bool showEvenError = false;
+    bool turnedOffLeds = false;
+    uint16_t ledChgInterval = 100; // time in msecs, adjust for responsiveness of LED Actions (minimum ??)
+    uint16_t ledSlowInterval = 650; // Intervalfor visual changes of "normal" Modes ie. not Notifications
 
     // Only enable measurements if valid GPIO is used
     #ifdef MEASURE_BATTERY_VOLTAGE
