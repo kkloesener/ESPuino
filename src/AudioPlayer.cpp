@@ -138,6 +138,10 @@ uint8_t AudioPlayer_GetCurrentVolume(void) {
 
 void AudioPlayer_SetCurrentVolume(uint8_t value) {
     AudioPlayer_CurrentVolume = value;
+    #ifdef USE_LAST_VOLUME_AFTER_REBOOT
+        gPrefsSettings.putUInt("previousVolume", value);
+    #endif
+
 }
 
 uint8_t AudioPlayer_GetMaxVolume(void) {
